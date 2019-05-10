@@ -1,5 +1,6 @@
-from requests import get
-import simplejson
+import requests
+import os
+# import simplejson
 import re
 
 
@@ -7,7 +8,7 @@ import re
 
 #s_city = "Kiev, UA"     # name of city and country
 # city_id = 703448        # city id of Kiev
-appid = "0fb87e9c7207bb8b3d51cb647269f5c9"      # ip key for identification
+appid = os.getenv('TOKEN')
 
 #---------------------------------------------------------------------------------------------------
 
@@ -144,10 +145,11 @@ def get_request():
         # five_days_weather = [pprint.pprint(data)]
 
         # print(five_days_weather)
+        print(data)
     except Exception as e:
         print("Exception (weather):", e)
         pass
-    return print(data)
+    # return print(data)
 
 #---------------------------------------------------------------------------------------------------
 
