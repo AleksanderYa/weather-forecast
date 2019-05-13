@@ -2,10 +2,11 @@ __author__ = 'Владелец'
 
 
 import requests
+import os
 
 s_city = "Kiev, UA"
 city_id = 703448
-appid = "0fb87e9c7207bb8b3d51cb647269f5c9"
+appid = os.getenv("TOKEN")
 try:
    res = requests.get("http://api.openweathermap.org/data/2.5/find",
                 params={'q': s_city, 'type': 'like', 'units': 'metric', 'APPID': appid})
@@ -17,7 +18,6 @@ try:
    print('city_id=', city_id)
 except Exception as e:
    print("Exception (find):", e)
-   pass
 
 
 

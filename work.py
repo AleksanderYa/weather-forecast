@@ -1,20 +1,21 @@
-from requests import get
-import simplejson
+import requests
+import os
 import re
+import pprint
 
 
 
 
 #s_city = "Kiev, UA"     # name of city and country
 # city_id = 703448        # city id of Kiev
-appid = "0fb87e9c7207bb8b3d51cb647269f5c9"      # ip key for identification
-
+appid = os.getenv('TOKEN')
+# appid = '0fb87e9c7207bb8b3d51cb647269f5c9'
 #---------------------------------------------------------------------------------------------------
 
 def help():
     print(
         '----------------------------------------------------------------\n'
-        'Лузер, тоесть Юзер!Следуй по инструкции, программа простая.\n'
+        'Лузер, то есть Юзер!Следуй по инструкции, программа простая.\n'
         'Эта прога ищет для тебя прогноз погоды по городу \n'
         'и по дате с временем  которую ты потом выберешь из\n'
         'предлагаемого списка.\n'
@@ -25,12 +26,12 @@ def help():
         'или цифру из выпадающего списка предложеных городов.\n'
         '2. Выбери и введи дату цифру-ответ из выпадающего списка\n'
         'предложенных дат.\n'
-        '3. Выбери и введи цифру ответ с предложеным времинем.\n'
+        '3. Выбери и введи цифру ответ с предложенным временем.\n'
         '4. Получи ответ, дальше или удовлетворись либо пробуй по-новой\n'
         '----------------------------------------------------------------\n '
 
         ' Если что то не понятно, то мне очень жаль.\n '
-        '!!Вдыхни поглубже и давай еще разок!!\n'
+        '!!Вдохни поглубже и давай еще разок!!\n'
     )
 
 
@@ -65,18 +66,19 @@ def question_location():
           '1.) Kiev, UA\n'
           '2.) Lviv, UA\n'
           '3.) Odessa, UA\n'
-          '4.) Harkov, UA\n'
+          '4.) Kharkov, UA\n'
           '5.) Yalta, UA\n'
           '6.) Help\n'
           '7.) Да ну его все!'
           )
 
     while True:
-        answer = input('--------input answer --------\n')
+        answer = input('-------------------------input answer ----------------------------\n')
         if not answer.isalpha() and not answer.isdigit():
             re_answer = re.findall(r'[A-Z][a-z]+,.[A-Z]{2}', answer)
             if re_answer:
                 if str(returned_geolocation_id(re_answer)).isdigit():
+
                     return re_answer[0]
                     break
                 else:
@@ -98,9 +100,11 @@ def question_location():
                 return 'Odessa, UA'
                 break
             elif answer == '4':
-                return 'Harkov, UA'
+                return 'Kharkiv, UA'
+                break
             elif answer == '5':
                 return 'Yalta, UA'
+                break
             elif answer == '6':
                 help()
                 continue
@@ -111,19 +115,19 @@ def question_location():
                 print('Wrong name of city or format!!You need: Lviv, UA ')
                 continue
 
-        elif answer == 'exit' or 'EXIT' or 'Exit':
+        elif answer == 'exit':
             print('Ну и вали!!!')
             exit()
         else:
             print('input corrected name of city!?You need: Lviv, UA')
             continue
 
+s_city = question_location()
 #---------------------------------------------------------------------------------------------------
 
 def get_request():
     '''
     The function sends a request to API openweathermap
-
     '''
 
     try:
@@ -131,7 +135,7 @@ def get_request():
         #                    params={'id': question_location(), 'units': 'metric',
         #                            'lang': 'ru', 'APPID': appid})
         res = requests.get("https://api.openweathermap.org/data/2.5/forecast?q={}\
-                                &appid={}".format(question_location(), appid))
+                                &appid={}".format(s_city, appid))
         data = {}
         data = res.json()
 
@@ -143,23 +147,82 @@ def get_request():
         # print("Weather:", data['weather'][0]['description'])
         # five_days_weather = [pprint.pprint(data)]
 
-        # print(five_days_weather)
+        # pprint.pprint(data)
+
+
+
+
     except Exception as e:
         print("Exception (weather):", e)
         pass
-    return print(data)
+    return data
 
+
+data = get_request()
 #---------------------------------------------------------------------------------------------------
 
-get_request()
+def new_dict():
+    DT_txt = {}
+    for index, value in enumerate(data['list']):
+        for key, val in value.items():
+            if key == 'dt_txt':
+                DT_txt[val] = {}
+                DT_txt[val].update({'pozition': index})
+
+    for index, value in DT_txt.items():
+        DT_txt[index].update({'clouds': data['list'][DT_txt.get(index).get('pozition'
+                                                                           )].get('clouds').get('all')})
+        DT_txt[index].update({'humidity': data['list'][DT_txt.get(index).get('pozition'
+                                                                             )].get('main').get('humidity')})
+        DT_txt[index].update({'temp': data['list'][DT_txt.get(index).get('pozition'
+                                                                         )].get('main').get('temp')})
+
+        DT_txt[index].update({'weather': data['list'][DT_txt.get(index).get('pozition'
+                                                                            )].get('weather')[0].get('description')})
+        DT_txt[index].update({'wind': data['list'][DT_txt.get(index).get('pozition'
+                                                                         )].get('wind').get('speed')})
+
+    return DT_txt
+
+new_dict = new_dict()
+#----------------------------------------------------------------------------------------------------------------------
+
+def questions_time():
+    '''
+    '''
+    print('Я тебя понял, есть такой город как {0}.\n\n'
+          'Теперь давай выбери дату и время с прогнозом\n'
+          'из этого огромного списка.\n\n'
+          'Если ты готов его увидить,\n'
+          'то жми ENTER.\n'.format(re.findall('([A-Za-z]+),',s_city)[0]))
+
+    answer_to_contin = input('-------------------------input answer ----------------------------\n')
+    if answer_to_contin or not answer_to_contin:
+
+        for index, value in enumerate(new_dict.items()):
+            print(str(index + 1) + ').',value[0])
+        print('------------------------------------------------------------------\n\n')
+        while True:
+            print(''
+                  '')
+            answer_the_time = input('-------------------------input answer ----------------------------\n')
+            time_dict = {}
+            for index, value in enumerate(new_dict.items()):
+                time_dict.update({index + 1: value[0]})
 
 
+            if time_dict.get(int(answer_the_time)):
+                # print(time_dict.get(int(answer_the_time)))
+                td = ''
+                td = time_dict.get(int(answer_the_time))
+                break
+
+    return td
+
+questions_time = questions_time()
 
 
-
-
-
-
+#-----------------------------------------------------------------------------------------------------------
 
 
 
@@ -167,57 +230,6 @@ get_request()
 
 
 """
-data = get_request() # заварачиваем в переменную
 
-#-----------------------------------------------------------------------------
-
-def in_json(obj):
-    '''Переобразует в читаемый код
-    '''
-    return simplejson.dumps(obj, indent=2, encoding='utf-8',\
-                            iterable_as_array=False)
-
-#-----------------------------------------------------------------------------
-def write_all_date():
-    all_date = []
-
-    i = 0
-    while i < len(data['list']):
-        all_date.append(data['list'][i]['dt_txt'])
-        i += 1
-    return all_date
-
-#-----------------------------------------------------------------------------
-calling_date = '2019-04-26 15:00:00'
-
-def find_in_list():
-    '''
-    Функция исчит похожую дату  и время в листе и при совпадении значения записует
-     в переменную copy_data_list
-    '''
-    i = 0
-    while i < len(data['list']):
-            # print(type(data['list'][i]['dt_txt']))
-            if data['list'][i]['dt_txt'] == calling_date:
-                copy_data_list = data['list'][i]
-                i += 1
-            else:
-                i += 1
-
-    return copy_data_list
-
-#------------------------------------------------------------------------------
-
-#print(find_in_list())
-#print(str(len(data['list'])) + '.) ' + write_all_date()[0][-8:])
-#print(city_id)
-question_location()
-#print(data['list'][0]['dt_txt'])
-#print(data['list'][0]['dt_txt'] == calling_date)
-
-#------------------------------------------------------------------------------
-
-s = 'Kyiv'
-etalon = 'Kyiv, UA'
-
+TOKEN=0fb87e9c7207bb8b3d51cb647269f5c9
 """
