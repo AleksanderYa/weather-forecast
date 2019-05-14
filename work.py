@@ -218,8 +218,13 @@ def questions_time():
                 if time_dict.get(int(answer_the_time)):
                     td = time_dict.get(int(answer_the_time))
                     break
+            elif answer_the_time == 'exit':
+                exit()
             else:
                 continue
+    elif answer_to_contin == 'exit':
+        exit()
+
     return td
 
 questions_time = questions_time()
