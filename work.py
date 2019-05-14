@@ -3,13 +3,12 @@ import os
 import re
 import pprint
 
-
-
-
+# appid = '0fb87e9c7207bb8b3d51cb647269f5c9'
 #s_city = "Kiev, UA"     # name of city and country
 # city_id = 703448        # city id of Kiev
+
 appid = os.getenv('TOKEN')
-# appid = '0fb87e9c7207bb8b3d51cb647269f5c9'
+
 #---------------------------------------------------------------------------------------------------
 
 def help():
@@ -28,6 +27,7 @@ def help():
         'предложенных дат.\n'
         '3. Выбери и введи цифру ответ с предложенным временем.\n'
         '4. Получи ответ, дальше или удовлетворись либо пробуй по-новой\n'
+        '5. Для выхода напиши в ответе exit'
         '----------------------------------------------------------------\n '
 
         ' Если что то не понятно, то мне очень жаль.\n '
@@ -63,6 +63,9 @@ def question_location():
     '''
     print('Привет, я могу узнать прогноз погоды для тебя.\n'
           'Напиши ЦИФРУ-ОТВЕТ или ГОРОД СО СТРАНОЙ в формате: Kiev, UA\n'
+          'P.S.Если ты будешь писать название города то не забудь то что\n'
+          'оно должно быть написано англ. буквами как в оригинале\n'
+          'Если это украинский город, то не Lvov а Lviv.\n\n'
           '1.) Kiev, UA\n'
           '2.) Lviv, UA\n'
           '3.) Odessa, UA\n'
@@ -181,6 +184,7 @@ def new_dict():
                                                                             )].get('weather')[0].get('description')})
         DT_txt[index].update({'wind': data['list'][DT_txt.get(index).get('pozition'
                                                                          )].get('wind').get('speed')})
+        DT_txt[index].update({'dt': index})
 
     return DT_txt
 
@@ -203,26 +207,46 @@ def questions_time():
             print(str(index + 1) + ').',value[0])
         print('------------------------------------------------------------------\n\n')
         while True:
-            print(''
-                  '')
+            print('И снова я ожидаю от тебя ЦИФРУ-ОТВЕТ:\n\n'
+                  'Которая в диапазоне данного списка.\n')
             answer_the_time = input('-------------------------input answer ----------------------------\n')
             time_dict = {}
-            for index, value in enumerate(new_dict.items()):
-                time_dict.update({index + 1: value[0]})
+            if answer_the_time.isdigit():
+                for index, value in enumerate(new_dict.items()):
+                    time_dict.update({index + 1: value[0]})
 
-
-            if time_dict.get(int(answer_the_time)):
-                # print(time_dict.get(int(answer_the_time)))
-                td = ''
-                td = time_dict.get(int(answer_the_time))
-                break
-
+                if time_dict.get(int(answer_the_time)):
+                    td = time_dict.get(int(answer_the_time))
+                    break
+            else:
+                continue
     return td
 
 questions_time = questions_time()
 
 
 #-----------------------------------------------------------------------------------------------------------
+def weather_to_screen(arg):
+    print('\nИ так прогноз погоды на {0}!\n'
+          'Небо будет на {1} % покрыто облаками.\n'
+          'И как сказал бы англичанин:\n'
+          '"And in general, at this time the weather will be {2}"\n'
+          'Влажность воздуха {3} %\n'
+          'А на термометрах обесчают {4} C*\n'
+          'Скорость ветра будет {5} м/с\n'
+          'На этом все!\n'.format(
+        arg.get('dt'),
+        arg.get('clouds'),
+        arg.get('weather'),
+        arg.get('humidity'),
+        int(arg.get('temp')) - 273,
+        arg.get('wind')
+    ))
+    exit()
+
+
+
+#------------------------------------------------------------------------------------------------------
 
 
 
